@@ -1,1 +1,18 @@
+flowchart TD
+    A[📧 Trigger: Gmail<br/>'From now on'] --> B{Filtro Anti-Bucle<br/>¿Ya procesado?}
+    B -->|Sí| Z[⛔ Stop]
+    B -->|No| C[🤖 Motor IA: Claude/OpenAI<br/>Clasifica + Extrae + Redacta]
+    C -->|Error API| E[💾 Guardar Log_Error<br/>Estado = Error]
+    C -->|Éxito| D[🗄️ Crear/Actualizar Registro<br/>Estado = Procesado por IA]
+    D --> F[🔀 Router por Clasificación]
+    F -->|Descartado| G[Estado = Cerrado]
+    F -->|VIP / Estándar| H[💬 Slack: Notificación de Aprobación<br/>Estado = Esperando Aprobación]
+    H --> I{🧑 Human-in-the-loop<br/>Espera Feedback}
+    I -->|❌ Rechazado| J[Estado = Descartado]
+    I -->|✅ Aprobado| K[📤 Salida Multicanal<br/>Gmail/WhatsApp Template]
+    K --> L[🔗 Estado = Enviado<br/>Guardar Thread_ID]
+
+    style C fill:#8B5CF6,color:#fff
+    style I fill:#F59E0B,color:#fff
+    style E fill:#EF4444,color:#fff
 
