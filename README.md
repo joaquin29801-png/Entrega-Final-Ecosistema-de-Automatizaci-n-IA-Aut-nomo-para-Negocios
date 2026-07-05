@@ -56,9 +56,6 @@ flowchart TD
     style E fill:#EF4444,color:#fff
 ```
 
-> 📄 El diagrama en alta resolución está disponible en [`arquitectura.pdf`](./arquitectura.pdf).
-
----
 
 ## 🛠️ Stack Tecnológico
 
@@ -109,7 +106,8 @@ flowchart TD
 
 - Cuenta en [n8n](https://n8n.io) (cloud o self-hosted).
 - API Key de [Anthropic (Claude)](https://console.anthropic.com).
-- Base de datos configurada en [Airtable](https://airtable.com).
+- Base de datos configurada en [Airtable] https://airtable.com/invite/l?inviteId=inv8ELFMUbmX933j1&inviteToken=1f052fef7a93f0d4955d2ea375df8db0e23968fa089c1e82395f72b34c4e7d2c&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts
+  
 - Workspace de Slack con app y webhook habilitados.
 
 ### Pasos
@@ -211,7 +209,7 @@ Se ejecutó el flujo **más de 5 veces**, incluyendo el *camino infeliz*.
 
 ##  Enlaces Obligatorios
 
-- 🗄️ **Base de Datos (modo lectura):** `[Pega aquí tu enlace de Airtable/Notion]`
+- 🗄️ **Base de Datos (modo lectura):** `https://airtable.com/invite/l?inviteId=inv8ELFMUbmX933j1&inviteToken=1f052fef7a93f0d4955d2ea375df8db0e23968fa089c1e82395f72b34c4e7d2c&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts)`
 - 🎬 **Video Demo (3 min):** `[Pega aquí tu enlace de YouTube/Loom]`
 - 📄 **Diagrama de Arquitectura (PDF):** [`arquitectura.pdf`](./arquitectura.pdf)
 - 📦 **Blueprint del Flujo:** [`flujo.json`](./flujo.json)
