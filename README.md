@@ -131,12 +131,6 @@ cd ecosistema-ia-leads
 4. Ajusta las variables de entorno en `.env`:
 ```
 
-```env
-ANTHROPIC_API_KEY=tu_clave_aqui
-AIRTABLE_BASE_ID=tu_base_id
-AIRTABLE_TOKEN=tu_token
-SLACK_CHANNEL=#aprobaciones
-```
 
 5. Activa el flujo y realiza una prueba de humo con un correo real.
 
@@ -216,22 +210,6 @@ Se ejecutó el flujo **más de 5 veces**, incluyendo el *camino infeliz*.
 
 ---
 
-## 📂 Estructura del Repositorio
-
-```text
-📁 ecosistema-ia-leads/
-├── 📄 README.md
-├── 📄 arquitectura.pdf
-├── 📄 flujo.json
-├── 📄 .gitignore
-├── 📄 .env.example
-└── 📁 screenshots/
-    ├── trigger.png
-    ├── ejecucion-exitosa.png
-    └── camino-infeliz.png
-```
-
----
 
 ## 👤 Autor
 
