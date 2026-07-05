@@ -211,7 +211,7 @@ Se ejecutó el flujo **más de 5 veces**, incluyendo el *camino infeliz*.
 
 - 🗄️ **Base de Datos (modo lectura):** `https://airtable.com/invite/l?inviteId=inv8ELFMUbmX933j1&inviteToken=1f052fef7a93f0d4955d2ea375df8db0e23968fa089c1e82395f72b34c4e7d2c&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts)`
 - 🎬 **Video Demo (3 min):** `[Pega aquí tu enlace de YouTube/Loom]`
-- 📄 **Diagrama de Arquitectura (PDF):** [`arquitectura.pdf`](./arquitectura.pdf)
+- 📄 **Diagrama de Arquitectura (PDF):** [`arquitectura.png`](./1.png)
 - 📦 **Blueprint del Flujo:** [`flujo.json`](./flujo.json)
 
 ---
