@@ -1,0 +1,553 @@
+{
+  "name": "Gestión de Leads Comerciales",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Gestión de Leads Comerciales\nGmail → Anti-bucle → Claude (clasifica/extrae/redacta) → Airtable → Router → Slack (aprobación) → Gmail.\nRellena en Setup: cuentas Gmail/Anthropic/Airtable/Slack, base y tablas (Leads, Log_Error), canal de Slack y tu propio dominio."
+      },
+      "id": "1fa6446e-19a7-40d7-912b-b005ca35ba62",
+      "name": "Sticky Note 1fa6446e",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        960,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "<__PLACEHOLDER_VALUE__Filtro Gmail opcional, p.ej. label:leads o to:ventas@agencia.com__>",
+          "readStatus": "unread"
+        },
+        "options": {}
+      },
+      "id": "c06f3a8e-94f0-4af6-8622-fdcf49716777",
+      "name": "Trigger: Nuevo Correo",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        336
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NnjSYHBvfftCsCGG",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "no-self",
+              "leftValue": "={{ $json.from }}",
+              "rightValue": "<__PLACEHOLDER_VALUE__Tu propia dirección/dominio de Gmail (para no reprocesar tus envíos)__>",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "107a286c-b956-4f9a-8211-42b586267809",
+      "name": "Filtro Anti-Bucle",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        336
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analiza este correo comercial entrante.\n\nDe: {{ $json.from }}\nAsunto: {{ $json.subject }}\n\nCuerpo:\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "Eres un analista de ventas experto. Analiza el siguiente correo entrante.\n\nDATOS DINÁMICOS:\n- Remitente: {{ $json.from_name }}\n- Asunto: {{ $json.subject }}\n- Cuerpo: {{ $json.body }}\n\nTAREAS:\n1. Clasifica el lead como \"VIP\", \"Estándar\" o \"Descartado\".\n   (VIP = menciona presupuesto alto, urgencia o empresa grande).\n2. Asigna un score numérico de 0 a 100.\n3. Extrae: nombre_cliente, empresa, sector.\n4. Redacta una propuesta breve y profesional en español (máx. 120 palabras).\n\nResponde ÚNICAMENTE en JSON válido:\n{\n  \"clasificacion\": \"\",\n  \"score\": 0,\n  \"nombre_cliente\": \"\",\n  \"empresa\": \"\",\n  \"sector\": \"\",\n  \"propuesta\": \"\"\n}\n"
+        }
+      },
+      "id": "0ebf35db-aba5-428b-8507-acf10b14fe6b",
+      "name": "Motor IA · Claude",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        448,
+        96
+      ],
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": {
+          "nombre": "Juan Pérez",
+          "empresa": "Acme S.A.",
+          "sector": "Retail",
+          "clasificacion": "VIP",
+          "score": 88,
+          "propuesta_borrador": "Estimado Juan, gracias por su consulta...",
+          "reasoning": "Empresa grande, presupuesto claro y necesidad concreta."
+        }
+      },
+      "id": "8a12506d-a2f6-4a72-a35a-9183e877e432",
+      "name": "Estructura de Salida",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        592,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "77de6813-93d2-4b12-a2bf-a4e9b30d1214",
+      "name": "Guardar Lead",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        96
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ZehROyIyVjdIMCWu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "loose",
+                  "version": 2
+                },
+                "combinator": "and",
+                "conditions": [
+                  {
+                    "id": "descartado",
+                    "leftValue": "={{ $('Motor IA · Claude').item.json.output.clasificacion }}",
+                    "rightValue": "Descartado",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    }
+                  }
+                ]
+              },
+              "renameOutput": true,
+              "outputKey": "Descartado"
+            }
+          ]
+        },
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Aprobación (VIP/Estándar)"
+        }
+      },
+      "id": "616e3ce0-0195-4d74-be54-7ffe0412489b",
+      "name": "Router por Clasificación",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1024,
+        96
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "88c355ab-432d-42f5-b2aa-a196893cdc35",
+      "name": "Estado = Cerrado",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1248,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ZehROyIyVjdIMCWu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BETLE9P0F",
+          "mode": "list",
+          "cachedResultName": "todo-entrega-final"
+        },
+        "message": "=*Nuevo lead para aprobar*\n• Clasificación: {{ $('Motor IA · Claude').item.json.output.clasificacion }} (score {{ $('Motor IA · Claude').item.json.output.score }})\n• Contacto: {{ $('Motor IA · Claude').item.json.output.nombre }} — {{ $('Motor IA · Claude').item.json.output.empresa }} ({{ $('Motor IA · Claude').item.json.output.sector }})\n• Asunto: {{ $('Trigger: Nuevo Correo').item.json.subject }}\n\n*Propuesta borrador:*\n{{ $('Motor IA · Claude').item.json.output.propuesta_borrador }}",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Aprobar y enviar",
+            "disapproveLabel": "Rechazar"
+          }
+        },
+        "options": {}
+      },
+      "id": "5b21e0fd-e383-4d33-902a-456be24d579d",
+      "name": "Slack · Solicitud de Aprobación",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.5,
+      "position": [
+        1248,
+        192
+      ],
+      "webhookId": "cbb01f4b-208d-4857-b2bc-93aa0d912e9c",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "zUFd4Ifq9nsjFmgJ",
+          "name": "Slack OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "approved",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e0d2a8d2-56be-4a06-bc5f-4c7324169682",
+      "name": "Human-in-the-loop",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1472,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "reply",
+        "messageId": "={{ $('Trigger: Nuevo Correo').item.json.id }}",
+        "emailType": "text",
+        "message": "={{ $('Motor IA · Claude').item.json.output.propuesta_borrador }}",
+        "options": {
+          "replyToSenderOnly": true
+        }
+      },
+      "id": "0ad9cf66-0f31-43c0-843a-a21b1cb3dcf0",
+      "name": "Enviar Respuesta (Gmail)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        96
+      ],
+      "webhookId": "d4900950-1a5a-422d-a900-5aac79d4b359",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "NnjSYHBvfftCsCGG",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "1d01addf-d63f-426c-8018-5f0b0836f68b",
+      "name": "Estado = Enviado · Thread_ID",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        96
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ZehROyIyVjdIMCWu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "8bdf75dc-f658-4785-8f46-0fdb722ab2a9",
+      "name": "Estado = Descartado",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1696,
+        288
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ZehROyIyVjdIMCWu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "base",
+        "options": {}
+      },
+      "id": "c9c6448f-1f5d-4c67-b228-c554a73aa1a0",
+      "name": "Guardar Log_Error",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        800,
+        288
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "ZehROyIyVjdIMCWu",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "871bef57-0de5-4efd-a80b-7019fc34635c",
+      "name": "Stop · Ya Procesado",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        512,
+        496
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-4-6",
+          "cachedResultName": "Claude Sonnet 4.6"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.5,
+      "position": [
+        432,
+        288
+      ],
+      "id": "8dafe449-daba-4482-ae4e-bc41158b1287",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": "3kqUnJuJLrQzhNdE",
+          "name": "Anthropic account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: Nuevo Correo": {
+      "main": [
+        [
+          {
+            "node": "Filtro Anti-Bucle",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtro Anti-Bucle": {
+      "main": [
+        [
+          {
+            "node": "Motor IA · Claude",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Stop · Ya Procesado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Motor IA · Claude": {
+      "main": [
+        [
+          {
+            "node": "Guardar Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Guardar Log_Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Estructura de Salida": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Motor IA · Claude",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar Lead": {
+      "main": [
+        [
+          {
+            "node": "Router por Clasificación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router por Clasificación": {
+      "main": [
+        [
+          {
+            "node": "Estado = Cerrado",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Slack · Solicitud de Aprobación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack · Solicitud de Aprobación": {
+      "main": [
+        [
+          {
+            "node": "Human-in-the-loop",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Human-in-the-loop": {
+      "main": [
+        [
+          {
+            "node": "Enviar Respuesta (Gmail)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Estado = Descartado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enviar Respuesta (Gmail)": {
+      "main": [
+        [
+          {
+            "node": "Estado = Enviado · Thread_ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Motor IA · Claude",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "4d9f013d-3d52-4a88-ae2d-9dae1e8379bd",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "ff598c6ba0336bcf7bd63a95d4170e2861ef77521e2b0e1d08f93df5968cf677"
+  },
+  "nodeGroups": [],
+  "id": "muq7oaZNPP7a8tDO",
+  "tags": []
+}
