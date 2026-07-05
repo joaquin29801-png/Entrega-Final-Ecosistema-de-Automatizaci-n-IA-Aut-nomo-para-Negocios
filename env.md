@@ -1,0 +1,6 @@
+```env
+ANTHROPIC_API_KEY=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
+AIRTABLE_BASE_ID=https://airtable.com/invite/l?inviteId=inv8ELFMUbmX933j1&inviteToken=1f052fef7a93f0d4955d2ea375df8db0e23968fa089c1e82395f72b34c4e7d2c&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts
+AIRTABLE_TOKEN=patwTgsDhMkFeZQT1
+SLACK_CHANNEL=#aprobaciones
+```
