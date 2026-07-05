@@ -1,0 +1,118 @@
+{
+  "name": "Ecosistema Leads VIP - IA",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": { "item": [{ "mode": "everyMinute" }] },
+        "simple": false,
+        "filters": { "readStatus": "unread" }
+      },
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "number": [
+            {
+              "value1": "={{ $json.labelIds.includes('PROCESSED') ? 1 : 0 }}",
+              "operation": "equal",
+              "value2": 0
+            }
+          ]
+        }
+      },
+      "name": "Filtro Anti-Bucle",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "resource": "chat",
+        "model": "claude-3-5-sonnet",
+        "maxTokens": 500,
+        "temperature": 0.3,
+        "messages": {
+          "values": [
+            { "content": "={{ $node['Prompt Builder'].json.prompt }}" }
+          ]
+        }
+      },
+      "name": "Motor IA (Claude)",
+      "type": "n8n-nodes-base.anthropic",
+      "typeVersion": 1,
+      "position": [680, 260],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            { "value1": "={{ $json.error !== undefined }}", "value2": true }
+          ]
+        }
+      },
+      "name": "Error Handling",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [900, 260]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "application": "airtable",
+        "table": "Leads",
+        "fields": {
+          "Estado": "Error",
+          "Log_Error": "={{ $json.error.message }}"
+        }
+      },
+      "name": "Guardar Log Error",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "table": "Leads",
+        "fields": {
+          "Estado": "Esperando Aprobación",
+          "Clasificacion": "={{ $json.clasificacion }}",
+          "Score_IA": "={{ $json.score }}",
+          "Propuesta_Generada": "={{ $json.propuesta }}"
+        }
+      },
+      "name": "Guardar Lead",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2,
+      "position": [1120, 200]
+    },
+    {
+      "parameters": {
+        "channel": "#aprobaciones",
+        "text": "🔔 Nuevo lead *{{ $json.clasificacion }}* (Score: {{ $json.score }}). Revisa y aprueba la propuesta.",
+        "otherOptions": {}
+      },
+      "name": "Slack Aprobación",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    }
+  ],
+  "connections": {
+    "Gmail Trigger": { "main": [[{ "node": "Filtro Anti-Bucle", "type": "main", "index": 0 }]] },
+    "Filtro Anti-Bucle": { "main": [[{ "node": "Motor IA (Claude)", "type": "main", "index": 0 }]] },
+    "Motor IA (Claude)": { "main": [[{ "node": "Error Handling", "type": "main", "index": 0 }]] },
+    "Error Handling": {
+      "main": [
+        [{ "node": "Guardar Log Error", "type": "main", "index": 0 }],
+        [{ "node": "Guardar Lead", "type": "main", "index": 0 }]
+      ]
+    },
+    "Guardar Lead": { "main": [[{ "node": "Slack Aprobación", "type": "main", "index": 0 }]] }
+  }
+}
