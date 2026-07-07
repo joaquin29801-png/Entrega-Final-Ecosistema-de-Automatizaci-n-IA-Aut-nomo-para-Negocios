@@ -238,7 +238,7 @@ El siguiente análisis financiero demuestra cómo la arquitectura implementada m
   }
 }
 
---
+```
 
 ##  Enlaces Obligatorios
 
