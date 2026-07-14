@@ -225,11 +225,6 @@ Se ejecutó el flujo **más de 5 veces**, incluyendo el *camino infeliz*.
 | Gestión de errores (resiliencia) | ✔️ | `continueOnFail` + nodo de log |
 | Credenciales ocultas | ✔️ | `.env` en `.gitignore` |
 
-Malla de Seguridad, Privacidad y Resiliencia (Detalle Técnico)
-Tu check de seguridad actual es muy bueno, pero la rúbrica pide una **definición rigurosa de las políticas de minimización de datos** para cumplir con normativas (como GDPR o leyes locales de protección de datos personales). 
-
-Agregá este apartado para demostrarle al evaluador que sabés cómo proteger datos sensibles:
-
 ```
 ## 🛡️ Malla de Seguridad, Privacidad y Resiliencia Avanzada
 
