@@ -239,7 +239,40 @@ El siguiente análisis financiero demuestra cómo la arquitectura implementada m
 }
 
 ```
+## 📖 Manual Operativo de Estructuras de Datos
 
+Este manual valida técnicamente el comportamiento del cerebro relacional del ecosistema y especifica cómo se transfieren los datos entre las diferentes plataformas del stack corporativo de forma limpia y estructurada.
+
+### 1. Instrucción de Generación del Modelo Relacional (Omni AI / LLM)
+Para replicar, escalar o regenerar la infraestructura de la base de datos en Airtable o Notion, se utiliza la siguiente directiva estructurada. Esta instrucción garantiza que cualquier IA comprenda la arquitectura de datos y mantenga la integridad relacional:
+
+> **Prompt de Ingeniería de Datos:**
+> *"Actúa como un Ingeniero de Datos Senior. Genera una base de datos relacional para gestión de leads comerciales utilizando dos tablas mutuamente vinculadas: 'Leads' y 'Empresas'. La tabla 'Leads' debe contener campos para identificar el mensaje (`Lead_ID`, `Email`, `Mensaje_Original`), metadatos de clasificación asignados por IA (`Clasificacion` [VIP/Estándar/Descartado], `Score_IA` [Numérico 0-100], `Propuesta_Generada`), variables de control de flujo (`Estado`, `Thread_ID_Slack`) y auditoría de resiliencia (`Log_Error`). La tabla 'Empresas' debe agrupar los leads por `Nombre_Empresa` y `Sector`. Configura una relación de uno-a-muchos (One-to-Many) entre Empresas y Leads para evitar la redundancia de datos. Entrega la estructura lista para ser mapeada por un orquestador n8n/Make sin campos aislados."*
+
+---
+
+### 2. Esquemas de Transferencia de Datos (Formatos JSON)
+
+A continuación, se detallan los payloads JSON exactos que viajan a través del ecosistema en sus dos puntos de integración más críticos.
+
+#### A. JSON de Entrada (Webhook / Gmail Trigger)
+Este es el esquema de datos crudos que el orquestador recibe al capturar un nuevo correo electrónico. Sirve como el contexto de entrada dinámico del sistema.
+
+```json
+{
+  "transaction_id": "99ca1728-6625-4cbf-bb24-a71da8e11a14",
+  "timestamp": "2026-07-13T19:30:00Z",
+  "trigger_source": "gmail_webhook",
+  "data": {
+    "message_id": "MSG1892374X",
+    "from_name": "Alejandro Rodríguez",
+    "from_email": "alejandro.rodriguez@techglobal.com",
+    "subject": "Consulta Urgente: Presupuesto para Implementación de Infraestructura IA",
+    "body": "Hola, formo parte del equipo de TechGlobal en el sector tecnológico. Estamos buscando una agencia que nos ayude a automatizar nuestro flujo de atención comercial. Tenemos un volumen estimado de 5,000 leads mensuales y presupuesto asignado para arrancar este trimestre. Quedo atento a su propuesta.",
+    "date_received": "2026-07-13"
+  }
+}
+```
 ##  Enlaces Obligatorios
 
 - 🗄️ **Base de Datos (modo lectura):** [https://airtable.com/invite/l?inviteId=inv8ELFMUbmX933j1&inviteToken=1f052fef7a93f0d4955d2ea375df8db0e23968fa089c1e82395f72b34c4e7d2c&utm_medium=email&utm_source=product_team&utm_content=transactional-alerts]
